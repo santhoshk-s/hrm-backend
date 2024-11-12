@@ -1,8 +1,12 @@
 import express from 'express';
 import dotenv from 'dotenv';
+import cors from 'cors'; 
 import connectDB from './config/db.js';
 import authRoutes from './routes/authRoutes.js';
-import cors from 'cors'; 
+import attendanceRoutes from './routes/attendanceRoute.js';
+import employeeRoutes from './routes/employeeRoute.js';
+import leaveRoutes from './routes/leaveRoute.js';
+import interviewRoutes from './routes/interviewRoute.js';
 
 dotenv.config();
 connectDB();
@@ -19,7 +23,11 @@ app.use(cors({
 }));
 
 // Routes
-app.use('/api/auth', authRoutes);
+app.use('/auth', authRoutes);
+app.use('/attendance', attendanceRoutes);
+app.use('/employee', employeeRoutes);
+app.use('/leave', leaveRoutes);
+app.use('/interview', interviewRoutes);
 
 app.get('/', (req, res) => {
   res.send('API is running...');

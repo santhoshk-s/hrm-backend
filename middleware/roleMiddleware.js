@@ -5,4 +5,4 @@ const authorizeRole = (roles) => (req, res, next) => {
     next();
 };
 
-module.exports = authorizeRole;
+export default authorizeRole;
