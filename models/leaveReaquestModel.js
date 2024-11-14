@@ -7,7 +7,7 @@ const LeaveRequestSchema = new mongoose.Schema(
       ref: "users",
       required: true,
     },
-    dates: [{ type: Date }],
+    dates: [{ type: String }],
     reason: {
       type: String,
       required: true,

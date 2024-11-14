@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import Attendance from "../models/attendanceModel.js";
+import logAuditAction from "../middleware/auditLogsMiddleware.js";
 
 let attendanceBucket;
 mongoose.connection.once("open", () => {
@@ -14,7 +15,7 @@ export const addArrival = async (req, res) => {
         const id = req.user.userId;
 
         if (!req.file) {
-            return res.status(400).json({ error: "Please upload image" });
+            return res.status(400).json({ error: "image is required" });
         }
 
         const uploadStream = attendanceBucket.openUploadStream(req.file.originalname);
@@ -29,18 +30,19 @@ export const addArrival = async (req, res) => {
             });
 
             const result = await newAttendance.save();
+            await logAuditAction(id, 'ARRIVAL ADDED', 'Attendance', 'Arrival record created');
             return res
-                .status(200)
-                .json({ success: true, message: "Arrival record created", data: result });
+                .status(201)
+                .json({ message: "Arrival record created", data: result });
         });
 
         uploadStream.on("error", (error) => {
-            return res.status(500).json({ message: "image upload failed , try again", error: error.message });
+            return res.status(400).json({ message: "image upload failed , try again", error: error.message });
         });
 
 
     } catch (error) {
-        return res.status(500).json({ message: "internal server error", error: error.message })
+        return res.status(500).json({ message: 'Internal server error', error: error.message })
     }
 };
 
@@ -70,7 +72,7 @@ export const updateDeparture = async (req, res) => {
                 $gte: startOfDay,
                 $lt: endOfDay,
             },
-        });
+        }).populate({path:"userId",select:"userName"});
 
         if (!existingRecord) {
             return res.status(404).json({
@@ -79,7 +81,7 @@ export const updateDeparture = async (req, res) => {
         }
 
         if (existingRecord.departureDate) {
-            return res.status(401).json({
+            return res.status(404).json({
                 message: "Departure already updated.",
             });
         }
@@ -98,6 +100,7 @@ export const updateDeparture = async (req, res) => {
             ) {
                 existingRecord.departureDate = new Date();
                 await existingRecord.save();
+                await logAuditAction(userId, 'DEPARTURE UPDATED', 'Attendance', `${existingRecord.userId.userName} Departure time updated successfully` );
                 return res.status(200).json({ message: "Updated departure time successfully." });
             }
 
@@ -114,14 +117,16 @@ export const updateDeparture = async (req, res) => {
             }
 
             existingRecord.userRemark = userRemark;
+            existingRecord.departureDate = new Date();
             await existingRecord.save();
+            await logAuditAction(userId, 'REMARK UPDATED', 'Attendance', `${existingRecord.userId.userName} remark added for early departure, awaiting for admin response`);
             return res.status(200).json({ message: "Remarks updated. wait admin response" });
         }
 
         return res.status(401).json({ message: "Something went wrong." });
 
     } catch (error) {
-        return res.status(500).json({ message: "internal server error", error: error.message })
+        return res.status(500).json({ message: 'Internal server error', error: error.message })
     }
 };
 
@@ -142,8 +147,7 @@ export const getAttendanceImage = (req, res) => {
             res.status(404).json({ error: error.message });
         });
     } catch (error) {
-        return res.status(500).json({
-            message: "An unexpected error occurred.",
+        return res.status(500).json({ message: 'Internal server error',
             error: error.message,
         });
     }
@@ -151,8 +155,9 @@ export const getAttendanceImage = (req, res) => {
 
 export const approveEarlyDeparture = async (req, res) => {
     try {
-        const { id, approve } = req.body;
-        const existingRecord = await Attendance.findById(id);
+        const { id } = req.params;
+        const {approve,adminResponse } = req.body;
+        const existingRecord = await Attendance.findById(id).populate({ path: "userId", select: "userName" });
         if (!existingRecord) {
             return res
                 .status(404)
@@ -161,22 +166,25 @@ export const approveEarlyDeparture = async (req, res) => {
 
         if (approve === false) {
             existingRecord.status = false;
+            existingRecord.adminResponse = adminResponse;
             await existingRecord.save();
-            return res.status(200).json({ success: false, message: "Rejected." });
+            await logAuditAction(req.user.userId, 'EARLY DEPARTURE REJECTED', 'Attendance', `${existingRecord.userId.userName} Early departure request rejected`);
+            return res.status(200).json({ success: false, message: "Rejected.",data:existingRecord });
         }
 
         if (approve === true) {
             existingRecord.status = true;
+            existingRecord.adminResponse = adminResponse;
             await existingRecord.save();
-            return res.status(200).json({ success: true, message: "Approved." });
+            await logAuditAction(req.user.userId, 'EARLY DEPARTURE APPROVED', 'Attendance', `${existingRecord.userId.userName} Early departure request approved`);
+            return res.status(200).json({ success: true, message: "Approved.",data:existingRecord });
         }
 
         return res
             .status(400)
             .json({ success: false, message: "Invalid approval status." });
     } catch (error) {
-        return res.status(500).json({
-            message: "An unexpected error occurred.",
+        return res.status(500).json({ message: 'Internal server error',
             error: error.message,
         });
     }
@@ -206,18 +214,18 @@ export const getTodayOneUserAttendance = async (req, res) => {
                 .json({ success: false, message: "Attendance record not found" });
         }
     } catch (error) {
-        res.status(500).json({ success: false, message: "Internal server error" });
+        return res.status(500).json({ message: 'Internal server error',error:error.message})
     }
 };
 
 export const getAllAttendance = async (req, res) => {
     try {
-        const records = await Attendance.find().sort({ arrivalDate: -1 });
+        const records = await Attendance.find({}).populate({path:"userId",select:"userName email"}).sort({ arrivalDate: 1 });
         return res.status(200).json({
             success: true,
             data: records,
         });
     } catch (error) {
-       return res.status(500).json({ success: false, message: "Internal server error" });
+        return res.status(500).json({ message: 'Internal server error',error:error.message})
     }
 };

@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import User from "../models/User.js";
+import logAuditAction from "../middleware/auditLogsMiddleware.js";
 
 let profileBucket;
 mongoose.connection.once("open", () => {
@@ -16,10 +17,7 @@ export const getProfile = async (req, res) => {
       data: user,
     });
   } catch (error) {
-    return res.status(500).json({
-      message: "An unexpected error occurred.",
-      error: error.message,
-    });
+    return res.status(500).json({ message: 'Internal server error',error:error.message})
   }
 }
 
@@ -43,6 +41,7 @@ export const updateProfile = async (req, res) => {
       if (!result) {
         return res.status(404).json({ success: false, message: 'User not found' });
       }
+      await logAuditAction(req.user.userId, 'PROFILE UPDATED', 'User Profile', `${result.userName} updated his profile`);
       return res.status(200).json({
         success: true,
         message: 'Profile updated successfully',
@@ -112,18 +111,15 @@ export const updateProfile = async (req, res) => {
     if (!result) {
       return res.status(404).json({ success: false, message: 'User not found' });
     }
+    await logAuditAction(req.user.userId, 'PROFILE UPDATED', 'User Profile', `${result.userName} updated his profile`);
 
     return res.status(200).json({
       success: true,
-      message: 'Profile updated successfully with files',
+      message: 'Profile updated successfully',
       data: result,
     });
   } catch (error) {
-    return res.status(500).json({
-      success: false,
-      message: 'Profile update failed.',
-      error: error.message,
-    });
+    return res.status(500).json({ message: 'Internal server error',error:error.message})
   }
 };
 
@@ -144,9 +140,59 @@ export const getProfileFile = (req, res) => {
       res.status(404).json({ error: "Image not found" });
     });
   } catch (error) {
-    return res.status(500).json({
-      message: "An unexpected error occurred.",
-      error: error.message,
-    });
+    return res.status(500).json({ message: 'Internal server error',error:error.message})
   }
 };
+
+export const removeUser = async (req,res) => {
+  try {
+    const {id} = req.params
+    const result = await User.findByIdAndDelete(id)
+    if(!result){
+      return res.status(404).json({ message: 'remove user failed'})
+    }
+    await logAuditAction(req.user.userId, 'USER REMOVED', 'User Management', `${result.userName} removed by admin`);
+
+    return res.status(200).json({ message: 'remove user success'})
+  } catch (error) {
+    return res.status(500).json({ message: 'Internal server error',error:error.message})
+  }
+}
+
+export const roleChange = async (req,res) => {
+  try {
+    const {id} = req.params;
+    const {role} = req.body;
+    const result = await User.findByIdAndUpdate(id,{role}, {
+      new: true,
+      runValidators: true,
+    })
+    if(!result){
+      return res.status(404).json({ message: 'update user failed'});
+    }
+    await logAuditAction(req.user.userId, 'USER ROLE CHANGED', 'User Management', `${result.userName} Role changed to ${role}.`);
+
+    return res.status(200).json({ message: 'role changed success'});
+  } catch (error) {
+    return res.status(500).json({ message: 'Internal server error',error:error.message})
+  }
+}
+
+export const getAllUser = async (req,res) => {
+  try {
+    const result = await User.find({})
+    return res.status(200).json({ message: 'success',data:result})
+  } catch (error) {
+    return res.status(500).json({ message: 'Internal server error',error:error.message})
+  }
+}
+
+export const getOneUser = async (req,res) => {
+  try {
+    const {id} = req.params
+    const result = await User.findById(id)
+    return res.status(200).json({ message: 'success',data:result})
+  } catch (error) {
+    return res.status(500).json({ message: 'Internal server error',error:error.message})
+  }
+}

@@ -10,7 +10,14 @@ const InterviewSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    mobile: {
+      type: Number,
+      required: true,
+    },
     position: {
+      type: String,
+    },
+    skills: {
       type: String,
     },
     experience: {

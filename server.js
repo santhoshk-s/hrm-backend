@@ -7,6 +7,8 @@ import attendanceRoutes from './routes/attendanceRoute.js';
 import employeeRoutes from './routes/employeeRoute.js';
 import leaveRoutes from './routes/leaveRoute.js';
 import interviewRoutes from './routes/interviewRoute.js';
+import queryRoutes from './routes/queryRoute.js';
+import auditLogsRoutes from './routes/auditLogsRoute.js';
 
 dotenv.config();
 connectDB();
@@ -28,6 +30,8 @@ app.use('/attendance', attendanceRoutes);
 app.use('/employee', employeeRoutes);
 app.use('/leave', leaveRoutes);
 app.use('/interview', interviewRoutes);
+app.use('/query', queryRoutes);
+app.use('/auditlogs', auditLogsRoutes);
 
 app.get('/', (req, res) => {
   res.send('API is running...');

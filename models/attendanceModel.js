@@ -4,7 +4,7 @@ const attendanceSchema = new mongoose.Schema(
   {
     userId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
+      ref: "users",
       required: true,
     },
     arrivalDate: {
@@ -12,7 +12,6 @@ const attendanceSchema = new mongoose.Schema(
     },
     departureDate: {
       type: Date,
-      default:null
     },
     image: {
       type: String,
@@ -27,11 +26,9 @@ const attendanceSchema = new mongoose.Schema(
     },
     userRemark:{
       type: String,
-      default:null
     },
-    adminRemark:{
+    adminResponse:{
       type: String,
-      default:null
     },
     status:{
       type: Boolean,
