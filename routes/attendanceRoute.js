@@ -13,6 +13,6 @@ router.post('/update_departure',verifyToken, updateDeparture);
 router.get('/image/:imageId', getAttendanceImage);
 router.get('/today', getTodayOneUserAttendance);
 router.get('/all',verifyToken,authorizeRole(['hr','admin']),  getAllAttendance);
-router.post('/approve',verifyToken,authorizeRole(['hr','admin']), approveEarlyDeparture);
+router.put('/approve/:id',verifyToken,authorizeRole(['hr','admin']), approveEarlyDeparture);
 
 export default router;

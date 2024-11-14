@@ -26,6 +26,9 @@ const userSchema = new mongoose.Schema(
       default: "employee",
       enum: ["admin", "hr", "manager", "employee"],
     },
+    position: {
+      type: String,
+    },
   },
   { timestamps: true }
 );
