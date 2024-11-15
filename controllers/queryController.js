@@ -2,11 +2,11 @@ import Query from "../models/queryModel.js";
 
 export const newQuery = async (req, res) => {
   try {
-    const { query } = req.body;
+    const { subject,query } = req.body;
     if (!query) {
       return res.status(404).json({ message: "all fields are required" });
     }
-    const result = new Query({ userId: req.user.userId, query });
+    const result = new Query({ userId: req.user.userId,subject, query });
     await result.save();
     await logAuditAction(req.user.userId, 'QUERY SUBMITTED', 'Query', `User submitted a new query: ${query}`);
     return res.status(201).json({ message: "Query submitted" });
