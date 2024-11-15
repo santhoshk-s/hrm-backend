@@ -29,6 +29,9 @@ const userSchema = new mongoose.Schema(
     position: {
       type: String,
     },
+    empCode: {
+      type: String,
+    },
   },
   { timestamps: true }
 );

@@ -7,6 +7,10 @@ const QuerySchame = new mongoose.Schema(
       ref: "users",
       required: true,
     },
+    subject: {
+      type: String,
+      required: true,
+    },
     query: {
       type: String,
       required: true,
