@@ -2,7 +2,7 @@ import AuditLog from "../models/auditLogsModel.js";
 
 async function logAuditAction(userId, action, resource, description, additionalData = {}) {
   const log = new AuditLog({
-    user: userId,
+    userId,
     action: action,
     resource: resource,
     description: description,
