@@ -20,6 +20,9 @@ const InterviewSchema = new mongoose.Schema(
     skills: {
       type: String,
     },
+    address: {
+      type: String,
+    },
     experience: {
       type: String,
     },

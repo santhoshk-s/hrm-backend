@@ -43,7 +43,7 @@ export const login = async (req, res) => {
       { expiresIn: "1d" }
     );
     await logAuditAction(user._id, 'LOGIN SUCCESS', 'User Authentication', 'User logged in successfully');
-    return res.status(200).json({ message: "Login successful", data: token });
+    return res.status(200).json({ message: "Login successful", data: token,role:user.role });
   } catch (error) {
     return res
       .status(500)
