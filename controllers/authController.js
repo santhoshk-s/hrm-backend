@@ -8,14 +8,12 @@ export const register = async (req, res) => {
   try {
     const existingUser = await User.findOne({ email });
     if (existingUser) {
-      await logAuditAction(existingUser._id, 'REGISTER FAILED', 'User Authentication', `${email} already existed`);
-
       return res.status(409).json({ message: "User already exists" });
     }
 
     const user = new User({ userName, email, password });
-    await user.save();
-    await logAuditAction(user._id, 'REGISTER SUCCESS', 'User Authentication', 'User registered successfully');
+    const result = await user.save();
+    await logAuditAction(result._id, 'REGISTER SUCCESS', 'User Authentication', 'User registered successfully');
     return res.status(201).json({ message: "User registered successfully" });
   } catch (error) {
     return res
@@ -34,7 +32,6 @@ export const login = async (req, res) => {
     
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch){
-      await logAuditAction(user._id, 'LOGIN FAILED', 'User Authentication', 'Incorrect password');
     return res.status(404).json({ message: "Invalid credentials" });}
     
     const token = jwt.sign(
