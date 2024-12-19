@@ -95,6 +95,8 @@ export const rejectLeave = async (req, res) => {
       .json({ message: "Internal server error", error: error.message });
   }
 };
+
+
 // manager get all pending leaves
 export const getPendingLeaves = async (req, res) => {
   try {
