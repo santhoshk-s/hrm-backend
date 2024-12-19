@@ -15,8 +15,8 @@ const LeaveRequestSchema = new mongoose.Schema(
 
     status: {
       type: String,
-      enum: ["pending", "approved by manager", "approved by hr", "rejected"],
-      default: "pending",
+      enum: ["PENDING", "APPROVED", "REJECTED"],
+      default: "PENDING",
     },
 
     managerComments: { type: String },
