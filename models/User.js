@@ -19,6 +19,16 @@ const userSchema = new mongoose.Schema(
       unique: true,
     },
 
+    mobileVerified: {
+      type: Boolean,
+      default: false,
+    },
+
+    emailVerifiedAt: {
+      type: Boolean,
+      default: false,
+    },
+
     password: {
       type: String,
       required: true,
